@@ -13,7 +13,7 @@ public protocol ChartDelegate: class {
     Tells the delegate that the specified chart has been touched.
 
     - parameter chart: The chart that has been touched.
-    - parameter indexes: Each element of this array contains the index of the data that has been touched, one for each 
+    - parameter indexes: Each element of this array contains the index of the data that has been touched, one for each
       series. If the series hasn't been touched, its index will be nil.
     - parameter x: The value on the x-axis that has been touched.
     - parameter left: The distance from the left side of the chart.
@@ -22,7 +22,7 @@ public protocol ChartDelegate: class {
     func didTouchChart(_ chart: Chart, indexes: [Int?], x: Double, left: CGFloat)
 
     /**
-    Tells the delegate that the user finished touching the chart. The user will 
+    Tells the delegate that the user finished touching the chart. The user will
     "finish" touching the chart only swiping left/right outside the chart.
 
     - parameter chart: The chart that has been touched.
@@ -30,8 +30,8 @@ public protocol ChartDelegate: class {
     */
     func didFinishTouchingChart(_ chart: Chart)
     /**
-     Tells the delegate that the user ended touching the chart. The user 
-     will "end" touching the chart whenever the touchesDidEnd method is 
+     Tells the delegate that the user ended touching the chart. The user
+     will "end" touching the chart whenever the touchesDidEnd method is
      being called.
      
      - parameter chart: The chart that has been touched.
@@ -53,9 +53,13 @@ public enum ChartLabelOrientation {
     case vertical
 }
 
-@IBDesignable
 open class Chart: UIControl {
-
+    
+    /**
+     My custom properties - OVO
+     */
+    open var yLabelPadding: CGFloat = 0.0
+    
     // MARK: Options
 
     @IBInspectable
@@ -65,15 +69,13 @@ open class Chart: UIControl {
     Series to display in the chart.
     */
     open var series: [ChartSeries] = [] {
-      didSet {
-        DispatchQueue.main.async {
-          self.setNeedsDisplay()
+        didSet {
+            setNeedsDisplay()
         }
-      }
     }
 
     /**
-    The values to display as labels on the x-axis. You can format these values  with the `xLabelFormatter` attribute. 
+    The values to display as labels on the x-axis. You can format these values  with the `xLabelFormatter` attribute.
     As default, it will display the values of the series which has the most data.
     */
     open var xLabels: [Double]?
@@ -522,14 +524,14 @@ open class Chart: UIControl {
         context.setLineWidth(0.5)
 
         // horizontal axis at the bottom
-        context.move(to: CGPoint(x: CGFloat(0), y: drawingHeight + topInset))
-        context.addLine(to: CGPoint(x: CGFloat(drawingWidth), y: drawingHeight + topInset))
-        context.strokePath()
+//        context.move(to: CGPoint(x: CGFloat(32), y: drawingHeight + topInset))
+//        context.addLine(to: CGPoint(x: CGFloat(drawingWidth), y: drawingHeight + topInset))
+//        context.strokePath()
 
         // horizontal axis at the top
-        context.move(to: CGPoint(x: CGFloat(0), y: CGFloat(0)))
-        context.addLine(to: CGPoint(x: CGFloat(drawingWidth), y: CGFloat(0)))
-        context.strokePath()
+//        context.move(to: CGPoint(x: CGFloat(0), y: CGFloat(0)))
+//        context.addLine(to: CGPoint(x: CGFloat(drawingWidth), y: CGFloat(0)))
+//        context.strokePath()
 
         // horizontal axis when y = 0
         if min.y < 0 && max.y > 0 {
@@ -540,14 +542,14 @@ open class Chart: UIControl {
         }
 
         // vertical axis on the left
-        context.move(to: CGPoint(x: CGFloat(0), y: CGFloat(0)))
-        context.addLine(to: CGPoint(x: CGFloat(0), y: drawingHeight + topInset))
-        context.strokePath()
+//        context.move(to: CGPoint(x: CGFloat(0), y: CGFloat(0)))
+//        context.addLine(to: CGPoint(x: CGFloat(0), y: drawingHeight + topInset))
+//        context.strokePath()
 
         // vertical axis on the right
-        context.move(to: CGPoint(x: CGFloat(drawingWidth), y: CGFloat(0)))
-        context.addLine(to: CGPoint(x: CGFloat(drawingWidth), y: drawingHeight + topInset))
-        context.strokePath()
+//        context.move(to: CGPoint(x: CGFloat(drawingWidth), y: CGFloat(0)))
+//        context.addLine(to: CGPoint(x: CGFloat(drawingWidth), y: drawingHeight + topInset))
+//        context.strokePath()
     }
 
     fileprivate func drawLabelsAndGridOnXAxis() {
@@ -565,7 +567,7 @@ open class Chart: UIControl {
         }
 
         let scaled = scaleValuesOnXAxis(labels)
-        let padding: CGFloat = 5
+        let padding: CGFloat = 0.0
         scaled.enumerated().forEach { (i, value) in
             let x = CGFloat(value)
             let isLastLabel = x == drawingWidth
@@ -637,7 +639,7 @@ open class Chart: UIControl {
         }
 
         let scaled = scaleValuesOnYAxis(labels)
-        let padding: CGFloat = 5
+        let padding: CGFloat = yLabelPadding
         let zero = CGFloat(getZeroValueOnYAxis(zeroLevel: 0))
 
         scaled.enumerated().forEach { (i, value) in
@@ -647,13 +649,12 @@ open class Chart: UIControl {
             // Add horizontal grid for each label, but not over axes
             if y != drawingHeight + topInset && y != zero {
 
-                context.move(to: CGPoint(x: CGFloat(0), y: y))
+                context.move(to: CGPoint(x: CGFloat(0.0), y: y))
                 context.addLine(to: CGPoint(x: self.bounds.width, y: y))
                 if labels[i] != 0 {
-                    // Horizontal grid for 0 is not dashed
-                    context.setLineDash(phase: CGFloat(0), lengths: [CGFloat(5)])
+                    context.setLineDash(phase: CGFloat(0.0), lengths: [])
                 } else {
-                    context.setLineDash(phase: CGFloat(0), lengths: [])
+                    context.setLineDash(phase: CGFloat(0.0), lengths: [])
                 }
                 context.strokePath()
             }
@@ -670,7 +671,7 @@ open class Chart: UIControl {
             }
 
             // Labels should be placed above the horizontal grid
-            label.frame.origin.y -= label.frame.height
+            label.frame.origin.y -= (label.frame.height / 2)
 
             self.addSubview(label)
         }
@@ -699,6 +700,7 @@ open class Chart: UIControl {
             shapeLayer.strokeColor = highlightLineColor.cgColor
             shapeLayer.fillColor = nil
             shapeLayer.lineWidth = highlightLineWidth
+            shapeLayer.lineDashPattern = [7, 3]
 
             highlightShapeLayer = shapeLayer
             layer.addSublayer(shapeLayer)
