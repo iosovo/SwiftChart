@@ -58,7 +58,7 @@ open class Chart: UIControl {
     /**
      My custom properties - OVO
      */
-    open var yLabelPadding: CGFloat = 0.0
+    open var yLabelPadding: CGFloat = -40.0
     
     // MARK: Options
 
