@@ -58,7 +58,7 @@ open class Chart: UIControl {
     /**
      My custom properties - OVO
      */
-    open var yLabelPadding: CGFloat = -40.0
+    open var xLabelWidth: CGFloat? = nil
     
     // MARK: Options
 
@@ -74,6 +74,7 @@ open class Chart: UIControl {
         }
     }
 
+    open var coordinateValues: [[CGPoint]] = [[CGPoint]]()
     /**
     The values to display as labels on the x-axis. You can format these values  with the `xLabelFormatter` attribute.
     As default, it will display the values of the series which has the most data.
@@ -295,6 +296,15 @@ open class Chart: UIControl {
         let series = self.series[seriesIndex] as ChartSeries
         return series.data[dataIndex!].y
     }
+    
+    open func coordinateForSeries(_ seriesIndex: Int, atIndex dataIndex: Int?) -> CGPoint? {
+        guard let index = dataIndex,
+              seriesIndex < coordinateValues.count,
+              index < coordinateValues[seriesIndex].count
+        else { return nil }
+        
+        return coordinateValues[seriesIndex][index]
+    }
 
     fileprivate func drawIBPlaceholder() {
         let placeholder = UIView(frame: self.frame)
@@ -468,9 +478,12 @@ open class Chart: UIControl {
         let isAboveZeroLine = yValues.max()! <= self.scaleValueOnYAxis(series[seriesIndex].colors.zeroLevel)
         let path = CGMutablePath()
         path.move(to: CGPoint(x: CGFloat(xValues.first!), y: CGFloat(yValues.first!)))
+        coordinateValues.append([CGPoint]())
+        coordinateValues[seriesIndex].append(CGPoint(x: CGFloat(xValues.first!), y: CGFloat(yValues.first!)))
         for i in 1..<yValues.count {
             let y = yValues[i]
             path.addLine(to: CGPoint(x: CGFloat(xValues[i]), y: CGFloat(y)))
+            coordinateValues[seriesIndex].append(CGPoint(x: CGFloat(xValues[i]), y: CGFloat(y)))
         }
 
         let lineLayer = CAShapeLayer()
@@ -575,9 +588,9 @@ open class Chart: UIControl {
             // Add vertical grid for each label, except axes on the left and right
 
             if x != 0 && x != drawingWidth {
-                context.move(to: CGPoint(x: x, y: CGFloat(0)))
-                context.addLine(to: CGPoint(x: x, y: bounds.height))
-                context.strokePath()
+//                context.move(to: CGPoint(x: x, y: CGFloat(0)))
+//                context.addLine(to: CGPoint(x: x, y: bounds.height))
+//                context.strokePath()
             }
 
             if xLabelsSkipLast && isLastLabel {
@@ -590,7 +603,6 @@ open class Chart: UIControl {
             label.font = labelFont
             label.text = xLabelsFormatter(i, labels[i])
             label.textColor = labelColor
-
             // Set label size
             label.sizeToFit()
             // Center label vertically
@@ -598,10 +610,22 @@ open class Chart: UIControl {
             if xLabelsOrientation == .horizontal {
                 // Add left padding
                 label.frame.origin.y -= (label.frame.height - bottomInset) / 2
-                label.frame.origin.x += padding
+                
 
                 // Set label's text alignment
-                label.frame.size.width = (drawingWidth / CGFloat(labels.count)) - padding * 2
+                if let customWidth = xLabelWidth {
+                    if x == 0 {
+                        label.frame.origin.x = 0
+                    } else {
+                        label.frame.origin.x -= customWidth / 2
+                    }
+                    
+                    label.frame.size.width = customWidth
+                } else {
+                    label.frame.origin.x += padding
+                    label.frame.size.width = (drawingWidth / CGFloat(labels.count)) - padding * 2
+                }
+                
                 label.textAlignment = xLabelsTextAlignment
             } else {
                 label.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 2))
@@ -639,7 +663,7 @@ open class Chart: UIControl {
         }
 
         let scaled = scaleValuesOnYAxis(labels)
-        let padding: CGFloat = yLabelPadding
+        let padding: CGFloat = 5
         let zero = CGFloat(getZeroValueOnYAxis(zeroLevel: 0))
 
         scaled.enumerated().forEach { (i, value) in
@@ -664,7 +688,7 @@ open class Chart: UIControl {
             label.text = yLabelsFormatter(i, labels[i])
             label.textColor = labelColor
             label.sizeToFit()
-
+            label.frame.origin.x = -(label.frame.width + 8.0)
             if yLabelsOnRightSide {
                 label.frame.origin.x = drawingWidth
                 label.frame.origin.x -= label.frame.width + padding
