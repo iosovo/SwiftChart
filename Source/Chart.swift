@@ -611,15 +611,9 @@ open class Chart: UIControl {
                 // Add left padding
                 label.frame.origin.y -= (label.frame.height - bottomInset) / 2
                 
-
                 // Set label's text alignment
                 if let customWidth = xLabelWidth {
-                    if x == 0 {
-                        label.frame.origin.x = 0
-                    } else {
-                        label.frame.origin.x -= customWidth / 2
-                    }
-                    
+                    label.frame.origin.x -= customWidth / 2
                     label.frame.size.width = customWidth
                 } else {
                     label.frame.origin.x += padding
