@@ -59,6 +59,8 @@ open class Chart: UIControl {
      My custom properties - OVO
      */
     open var xLabelWidth: CGFloat? = nil
+    open var coordinateValues: [[CGPoint]] = [[CGPoint]]()
+    open var afterDrawClosure: (() -> Void)? = nil
     
     // MARK: Options
 
@@ -74,7 +76,6 @@ open class Chart: UIControl {
         }
     }
 
-    open var coordinateValues: [[CGPoint]] = [[CGPoint]]()
     /**
     The values to display as labels on the x-axis. You can format these values  with the `xLabelFormatter` attribute.
     As default, it will display the values of the series which has the most data.
@@ -286,6 +287,7 @@ open class Chart: UIControl {
     */
     open func removeAllSeries() {
         series = []
+        coordinateValues = []
     }
 
     /**
@@ -370,7 +372,8 @@ open class Chart: UIControl {
         if showYLabelsAndGrid && (yLabels != nil || series.count > 0) {
             drawLabelsAndGridOnYAxis()
         }
-
+        
+        afterDrawClosure?()
     }
 
     // MARK: - Scaling
